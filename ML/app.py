@@ -6,6 +6,7 @@ from spacy.matcher import Matcher
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -86,14 +87,25 @@ def parse_resume():
     ])
 
     # Prepare prompt for Gemini API
-    prompt = f"These are the skills parsed from a resume: {resume_imp_content} and this is the job description: {job_desc}. Give the ATS score (out of 100) in a single number on how well this candidate fits the job."
+    prompt = f"These are the skills parsed from a resume: {resume_imp_content} and this is the job description: {job_desc}. Give response in the following pattern: ATS score: [estimated number out of 100]\n Strenghts:\nImprovements and skills required: "
     chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash", generation_config={"max_output_tokens": 1000})
     response = chat_session.start_chat().send_message(prompt)
+
+    ats_score_match = re.search(r'ATS score:\s*(\d+)', response.text)
+    strengths_match = re.search(r'Strengths:\s*([\s\S]*?)(?=Improvements and skills required:)', response.text)
+
+    ats_score = ats_score_match.group(1) if ats_score_match else None
+    strengths = strengths_match.group(1).strip() if strengths_match else None
+
 
     # Response to the frontend
     return jsonify({
         "parsed_content": parsed_content,
-        "gemini_response": response.text
+        "gemini_response": {
+            "ats_score": ats_score,
+            "strengths": strengths,
+            "full_response": response.text
+        }
     })
 
 if __name__ == '__main__':
