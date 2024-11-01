@@ -33,17 +33,17 @@ def get_phone_numbers(string):
     phone_numbers = r.findall(string)
     return [re.sub(r'\D', '', num) for num in phone_numbers if len(re.sub(r'\D', '', num)) in [8, 10]]
 
-nlp = spacy.load('en_core_web_sm')
-matcher = Matcher(nlp.vocab)
+# nlp = spacy.load('en_core_web_sm')
+# matcher = Matcher(nlp.vocab)
 
-def extract_name(text):
-    nlp_text = nlp(text)
-    pattern = [{'POS': 'PROPN'}, {'POS': 'PROPN'}]
-    matcher.add('NAME', [pattern])
-    matches = matcher(nlp_text)
-    for match_id, start, end in matches:
-        span = nlp_text[start:end]
-        return span.text
+# def extract_name(text):
+#     nlp_text = nlp(text)
+#     pattern = [{'POS': 'PROPN'}, {'POS': 'PROPN'}]
+#     matcher.add('NAME', [pattern])
+#     matches = matcher(nlp_text)
+#     for match_id, start, end in matches:
+#         span = nlp_text[start:end]
+#         return span.text
 
 Keywords = ["education", "relevant coursework", "skills", "experience", "projects"]
 
@@ -70,7 +70,7 @@ def parse_resume():
     parsed_content = {}
     parsed_content['E-mail'] = get_email_addresses(text)
     parsed_content['phone number'] = get_phone_numbers(text)
-    parsed_content['Name'] = extract_name(text)
+    # parsed_content['Name'] = extract_name(text)
     
     # Extract sections based on keywords
     content = extract_keywords(text.lower())
