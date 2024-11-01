@@ -5,10 +5,12 @@ import spacy
 from spacy.matcher import Matcher
 import google.generativeai as genai
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure Google Gemini API
-os.environ["MyAPIKEY"] = "AIzaSyBKn6KnoNA9HS6xlsat55lWSrR8cYT0fYo"
-genai.configure(api_key=os.environ["MyAPIKEY"])
+genai.configure(api_key=os.getenv("MyAPIKEY"))
 
 app = Flask(__name__)
 
