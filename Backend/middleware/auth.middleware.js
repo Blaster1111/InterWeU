@@ -4,46 +4,41 @@ import { ApiError } from "../utils/Apierror.js";
 import Student from "../model/student.model.js";
 import { Employee } from "../model/employee.model.js";
 
-export const verifyJWT = asyncHandler(async (req, res, next) => {
-  try {
-    const authHeader = req.header("Authorization");
-    const user = req.header("user");
-    if (user === "Student") {
-      const token =
-        authHeader && authHeader.startsWith("Bearer ")
-          ? authHeader.substring(7)
-          : null;
-      if (!token) {
-        throw new ApiError(401, "No access token provided in headers");
-      }
-      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      const student = await Student.findById(decodedToken?._id).select(
-        "-password -refreshToken"
-      );
-      if (!student) {
-        throw new ApiError(401, "Invalid Access Token");
-      }
-      return student;
-    } else if (user === "Employee") {
-      const token =
-        authHeader && authHeader.startsWith("Bearer ")
-          ? authHeader.substring(7)
-          : null;
-      if (!token) {
-        throw new ApiError(401, "No access token provided in headers");
-      }
-      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      const employee = await Employee.findById(decodedToken?._id).select(
-        "-password -refreshToken"
-      );
-      if (!employee) {
-        throw new ApiError(401, "Invalid Access Token");
-      }
-      return employee;
-    } else {
-      throw new ApiError(400, "Missing Required Fields");
-    }
-  } catch (error) {
-    next(new ApiError(401, error?.message || "Invalid access token"));
+export const verifyJWT = async (req) => {
+  const authHeader = req.header("Authorization");
+  const userType = req.header("user");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new ApiError(401, "No access token provided or invalid format");
   }
-});
+
+  const token = authHeader.substring(7);
+
+  if (!userType) {
+    throw new ApiError(400, "User type not specified");
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    
+    let user;
+    if (userType === "Student") {
+      user = await Student.findById(decodedToken.id);
+    } else if (userType === "Employee") {
+      user = await Employee.findById(decodedToken._id).select("-password");
+    } else {
+      throw new ApiError(400, "Invalid user type specified");
+    }
+
+    if (!user) {
+      throw new ApiError(401, "Invalid access token - User not found");
+    }
+
+    return user;
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new ApiError(401, "Invalid or expired token");
+    }
+    throw new ApiError(401, error?.message || "Authentication failed");
+  }
+};
