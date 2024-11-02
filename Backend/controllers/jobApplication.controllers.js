@@ -5,14 +5,18 @@ import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createJobApplicaiton = asyncHandler(async(req,res)=>{
-    const {jobId,applicantId,resume,status,coverLetter} = req.body;
+    const authenticatedUser = verifyJWT(req);
+  if(!authenticatedUser){
+    throw new ApiError(401,"Unauthenticated User");
+  }
+    const {jobId,resume,status,coverLetter} = req.body;
     const job = await Job.findById(jobId);
     if(!job || job.status === "closed"){
         throw new ApiError(404,"Job Not Found");
     }
     const jobApplication = new JobApplication({
         jobId,
-        applicantId,
+        applicantId: authenticatedUser._id,
         resume,
         coverLetter,
         status,
@@ -22,9 +26,12 @@ const createJobApplicaiton = asyncHandler(async(req,res)=>{
 });
 
 const updateJobApplicationStatus = asyncHandler(async(req,res)=>{
-    const {id} = req.params;
+    const authenticatedUser = verifyJWT(req);
+  if(!authenticatedUser){
+    throw new ApiError(401,"Unauthenticated User");
+  }
     const {status} = req.body;
-    const jobApplication = await JobApplication.findById(id);
+    const jobApplication = await JobApplication.findById(authenticatedUser._id);
     if(!jobApplication){
         throw new ApiError(404,"Job Application not found");
     }
