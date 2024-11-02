@@ -4,26 +4,32 @@ import { ApiError } from "../utils/Apierror.js";
 import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const createJobApplicaiton = asyncHandler(async(req,res)=>{
+const createJobApplication = asyncHandler(async (req, res) => {
     const authenticatedUser = verifyJWT(req);
-  if(!authenticatedUser){
-    throw new ApiError(401,"Unauthenticated User");
-  }
-    const {jobId,resume,status,coverLetter} = req.body;
-    const job = await Job.findById(jobId);
-    if(!job || job.status === "closed"){
-        throw new ApiError(404,"Job Not Found");
+    if (!authenticatedUser) {
+      throw new ApiError(401, "Unauthenticated User");
     }
+  
+    const { jobId, status, coverLetter } = req.body;
+    const job = await Job.findById(jobId);
+    if (!job || job.status === "closed") {
+      throw new ApiError(404, "Job Not Found");
+    }
+    if (!req.file) {
+      throw new ApiError(400, "Resume file is required");
+    }
+    const resumeUrl = await uploadFileToCloudinary(req.file.path);
     const jobApplication = new JobApplication({
-        jobId,
-        applicantId: authenticatedUser._id,
-        resume,
-        coverLetter,
-        status,
+      jobId,
+      applicantId: authenticatedUser._id,
+      resume: resumeUrl, 
+      coverLetter,
+      status,
     });
+  
     await jobApplication.save();
-    res.status(201).json(new apiResponse(201,jobApplication,"Job Application Submitted Successfully"));
-});
+    res.status(201).json(new apiResponse(201, jobApplication, "Job Application Submitted Successfully"));
+  });
 
 const updateJobApplicationStatus = asyncHandler(async(req,res)=>{
     const authenticatedUser = verifyJWT(req);
@@ -41,6 +47,6 @@ const updateJobApplicationStatus = asyncHandler(async(req,res)=>{
 });
 
 export{
-    createJobApplicaiton,
+    createJobApplication,
     updateJobApplicationStatus,
 }
