@@ -16,10 +16,10 @@ const Signin = () => {
         password,
       });
       console.log(response);
-      localStorage.setItem('authToken', response.data.accessToken);
-      localStorage.setItem('studentId', response.data.student._id );
-      console.log(response.data.data.accessToken);
-      console.log(response.data.data.student._id);
+      localStorage.setItem('authToken', response.data.data.accessToken);
+      localStorage.setItem('studentId', response.data.data.student._id );
+      
+      
       
       setEmail('');
       setPassword('');
