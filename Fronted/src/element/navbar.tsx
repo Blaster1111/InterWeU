@@ -8,6 +8,15 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const ListItem = React.forwardRef<
@@ -62,6 +71,11 @@ const problemTypes = [
 ];
 
 const Navbar = () => {
+  const defaultUser = {
+    name: "Guest User",
+    initials: "GU",
+    image: "/api/placeholder/32/32" // Using placeholder API for default avatar
+  };
   return (
     <nav className="bg-white border-b">
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
@@ -160,6 +174,39 @@ const Navbar = () => {
           <button className="h-10 px-5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all">
             Premium
           </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center space-x-2 focus:outline-none">
+              <div className="flex items-center space-x-2 rounded-full hover:bg-gray-100 p-1 transition-colors">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={defaultUser.image} alt={defaultUser.name} />
+                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                    {defaultUser.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-gray-700">{defaultUser.name}</span>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer">
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                My Submissions
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                Saved Problems
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-red-600">
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </nav>
