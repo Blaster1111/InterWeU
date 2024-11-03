@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '../element/navbar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import VideoMeetingScheduler from '../element/VideoMeetingScheduler'
 import { 
   Building2, Users, Calendar, Clock, 
   Plus, Edit, Trash2, Search, Filter,
@@ -42,6 +43,8 @@ interface Applicant {
 }
 
 const EmployerDashboard = () => {
+  const [username, setUsername] = useState("Google");
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('postings');
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
   const [isApplicantModalOpen, setIsApplicantModalOpen] = useState(false);
@@ -49,6 +52,15 @@ const EmployerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
+
+  const openModal = () => {
+    setIsInterviewModalOpen(true);
+  };
+  
+  // Function to close the modal
+  const closeModal = () => {
+    setIsInterviewModalOpen(false);
+  };
   // Sample data
   const jobPostings: JobPosting[] = [
     {
@@ -95,7 +107,7 @@ const EmployerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <Navbar></Navbar>
+      <Navbar username={username}></Navbar>
       <Tabs defaultValue="postings" className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <TabsList>
@@ -410,11 +422,26 @@ const EmployerDashboard = () => {
                 >
                   Reject
                 </button>
+                <button
+                    onClick={openModal}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Schedule Interview
+                </button>   
+                      
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+      {/* Conditionally Render VideoMeetingScheduler */}
+      {isInterviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="bg-white shadow-lg rounded-lg p-4">
+            <VideoMeetingScheduler onClose={() => setIsInterviewModalOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
