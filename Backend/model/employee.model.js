@@ -18,9 +18,6 @@ const employeeSchema = new mongoose.Schema(
     username: {
         type: String,
         required: true,
-        unique: true,
-        sparse:true,
-        index:true,
     },
     password:{
         type:String,
