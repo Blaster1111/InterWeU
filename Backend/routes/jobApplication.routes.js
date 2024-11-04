@@ -1,10 +1,13 @@
 import express from "express";
+import multer from "multer";
 import { createJobApplication, updateJobApplicationStatus } from "../controllers/jobApplication.controllers.js";
+
+const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 
-router.post('/apply',createJobApplication);
+router.post('/apply', upload.single('Resume'), createJobApplication);
 
-router.put('/apply/:id',updateJobApplicationStatus);
+router.put('/apply/:id', updateJobApplicationStatus);
 
 export default router;

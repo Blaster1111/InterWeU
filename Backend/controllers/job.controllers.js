@@ -2,6 +2,7 @@ import Job from "../model/job.model.js";
 import { ApiError } from "../utils/Apierror.js";
 import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const createJob = asyncHandler(async (req, res) => {
   const authenticatedUser = verifyJWT(req);
@@ -19,7 +20,7 @@ const createJob = asyncHandler(async (req, res) => {
     status = "open",
     benifits,
   } = req.body;
-  if (!title || !description || !organizationId || !createdBy) {
+  if (!title || !description || !organizationId || !postedBy) {
     throw new ApiError(400, "Missing Required Fields");
   }
   const job = new Job({
@@ -33,7 +34,7 @@ const createJob = asyncHandler(async (req, res) => {
     status,
     benifits,
   });
-  await Job.save();
+  await job.save();
   res.status(201).json(new apiResponse(201, job, "Job Created Successfully"));
 });
 

@@ -3,6 +3,9 @@ import JobApplication from "../model/jobApplication.model.js";
 import { ApiError } from "../utils/Apierror.js";
 import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import parseResume from "../services/gemini.services.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
+
 
 const createJobApplication = asyncHandler(async (req, res) => {
   const authenticatedUser = verifyJWT(req);
@@ -11,6 +14,7 @@ const createJobApplication = asyncHandler(async (req, res) => {
   }
 
   const { jobId, coverLetter } = req.body;
+
   const job = await Job.findById(jobId);
   if (!job || job.status === "closed") {
     throw new ApiError(404, "Job Not Found");
@@ -25,7 +29,7 @@ const createJobApplication = asyncHandler(async (req, res) => {
   const { resumeUrl, parsedData } = await parseResume(req.file.path, jobDescription);
 
   const { parsed_content, gemini_response } = parsedData;
-  
+
   const jobApplication = new JobApplication({
     jobId,
     coverLetter,
@@ -39,6 +43,7 @@ const createJobApplication = asyncHandler(async (req, res) => {
   await jobApplication.save();
   res.status(201).json(new apiResponse(201, jobApplication, "Job Application Submitted Successfully"));
 });
+
 
 const updateJobApplicationStatus = asyncHandler(async(req,res)=>{
     const authenticatedUser = verifyJWT(req);
