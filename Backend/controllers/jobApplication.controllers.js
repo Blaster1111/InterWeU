@@ -26,18 +26,14 @@ const createJobApplication = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Resume file is required");
   }
 
-  const { resumeUrl, parsedData } = await parseResume(req.file.path, jobDescription);
-
-  const { parsed_content, gemini_response } = parsedData;
-
+  const { resumeUrl, parsedData } = await parseResume(req.file, jobDescription);
+  
   const jobApplication = new JobApplication({
     jobId,
     coverLetter,
     applicantId: authenticatedUser._id,
     resume: resumeUrl,
-    atsScore: gemini_response.ats_score,
-    strengths: gemini_response.strengths,
-    parsedContent: parsed_content,
+    parsedContent: parsedData,
   });
 
   await jobApplication.save();

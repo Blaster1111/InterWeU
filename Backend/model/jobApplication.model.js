@@ -15,13 +15,7 @@ const jobApplicationSchema = new mongoose.Schema(
     resume: {
       type: String, 
     },
-    atsScore:{
-      type:String
-    },
-    parsedContent:{
-      type:String,
-    },
-    strengths:{
+    parsedData:{
       type:String,
     },
     coverLetter: {
