@@ -5,31 +5,40 @@ import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createJobApplication = asyncHandler(async (req, res) => {
-    const authenticatedUser = verifyJWT(req);
-    if (!authenticatedUser) {
-      throw new ApiError(401, "Unauthenticated User");
-    }
+  const authenticatedUser = verifyJWT(req);
+  if (!authenticatedUser) {
+    throw new ApiError(401, "Unauthenticated User");
+  }
+
+  const { jobId, coverLetter } = req.body;
+  const job = await Job.findById(jobId);
+  if (!job || job.status === "closed") {
+    throw new ApiError(404, "Job Not Found");
+  }
+
+  const jobDescription = job.description;
+
+  if (!req.file) {
+    throw new ApiError(400, "Resume file is required");
+  }
+
+  const { resumeUrl, parsedData } = await parseResume(req.file.path, jobDescription);
+
+  const { parsed_content, gemini_response } = parsedData;
   
-    const { jobId, status, coverLetter } = req.body;
-    const job = await Job.findById(jobId);
-    if (!job || job.status === "closed") {
-      throw new ApiError(404, "Job Not Found");
-    }
-    if (!req.file) {
-      throw new ApiError(400, "Resume file is required");
-    }
-    const resumeUrl = await uploadFileToCloudinary(req.file.path);
-    const jobApplication = new JobApplication({
-      jobId,
-      applicantId: authenticatedUser._id,
-      resume: resumeUrl, 
-      coverLetter,
-      status,
-    });
-  
-    await jobApplication.save();
-    res.status(201).json(new apiResponse(201, jobApplication, "Job Application Submitted Successfully"));
+  const jobApplication = new JobApplication({
+    jobId,
+    coverLetter,
+    applicantId: authenticatedUser._id,
+    resume: resumeUrl,
+    atsScore: gemini_response.ats_score,
+    strengths: gemini_response.strengths,
+    parsedContent: parsed_content,
   });
+
+  await jobApplication.save();
+  res.status(201).json(new apiResponse(201, jobApplication, "Job Application Submitted Successfully"));
+});
 
 const updateJobApplicationStatus = asyncHandler(async(req,res)=>{
     const authenticatedUser = verifyJWT(req);
