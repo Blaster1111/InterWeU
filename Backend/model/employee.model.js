@@ -20,6 +20,7 @@ const employeeSchema = new mongoose.Schema(
         required: true,
         unique: true,
         sparse:true,
+        index:true,
     },
     password:{
         type:String,
