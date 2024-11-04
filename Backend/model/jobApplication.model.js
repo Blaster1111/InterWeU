@@ -18,6 +18,9 @@ const jobApplicationSchema = new mongoose.Schema(
     parsedData:{
       type:String,
     },
+    atsScore:{
+      type:String
+    },
     coverLetter: {
       type: String,
     },

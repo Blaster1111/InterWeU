@@ -5,10 +5,10 @@ import { apiResponse } from "../utils/APIresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import parseResume from "../services/gemini.services.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
-
+import path, { parse } from 'path';
 
 const createJobApplication = asyncHandler(async (req, res) => {
-  const authenticatedUser = verifyJWT(req);
+  const authenticatedUser = await verifyJWT(req);
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
@@ -25,15 +25,21 @@ const createJobApplication = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new ApiError(400, "Resume file is required");
   }
+  console.log(req.file)
+  const  parsedData  = await parseResume(req.file, jobDescription);
 
-  const { resumeUrl, parsedData } = await parseResume(req.file, jobDescription);
-  
+  console.log(parsedData.gemini_response);
+
+  console.log(" ")
+
+  console.log(parsedData.gemini_response.ats_score)
   const jobApplication = new JobApplication({
     jobId,
     coverLetter,
     applicantId: authenticatedUser._id,
-    resume: resumeUrl,
-    parsedContent: parsedData,
+    resume: "hi",
+    atsScore: parsedData.gemini_response.ats_score,
+    parsedContent: parsedData.gemini_response.full_response,
   });
 
   await jobApplication.save();

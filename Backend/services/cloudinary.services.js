@@ -4,6 +4,9 @@ export const uploadFileToCloudinary = async (filePath) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'job_applications/resumes',
+      public_id: `resume_${Date.now()}`,
+      resource_type: 'auto',
+      upload_preset: 'public_access'
     });
     return result.secure_url;
   } catch (error) {
