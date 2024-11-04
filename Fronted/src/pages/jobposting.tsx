@@ -52,6 +52,15 @@ const EmployerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
+  const openScheduler = () => {
+    setIsApplicantModalOpen(false); // Close the applicant modal first
+    setIsInterviewModalOpen(true);  // Then open the scheduler
+  };
+  
+  const closeScheduler = () => {
+    setIsInterviewModalOpen(false);
+    setIsApplicantModalOpen(true); // Reopen the applicant modal if needed
+  };
 
   const openModal = () => {
     setIsInterviewModalOpen(true);
@@ -330,7 +339,7 @@ const EmployerDashboard = () => {
       </Dialog>
 
       {/* Applicant Details Modal */}
-      <Dialog open={isApplicantModalOpen} onOpenChange={setIsApplicantModalOpen}>
+      <Dialog open={isApplicantModalOpen && !isInterviewModalOpen} onOpenChange={setIsApplicantModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Applicant Details</DialogTitle>
