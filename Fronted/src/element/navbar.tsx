@@ -19,6 +19,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
+type NavbarProps = {
+  username: string;
+};
+
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
@@ -70,12 +74,13 @@ const problemTypes = [
   },
 ];
 
-const Navbar = () => {
-  const defaultUser = {
-    name: "Guest User",
-    initials: "GU",
-    image: "/api/placeholder/32/32" // Using placeholder API for default avatar
-  };
+const Navbar: React.FC<NavbarProps> = ({ username }) => {
+  const userInitials = username ? username.split(' ').map(n => n[0]).join('').toUpperCase() : 'GU';
+  // const defaultUser = {
+  //   name: "Guest User",
+  //   initials: "GU",
+  //   image: "/api/placeholder/32/32" // Using placeholder API for default avatar
+  // };
   return (
     <nav className="bg-white border-b">
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
@@ -177,13 +182,13 @@ const Navbar = () => {
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center space-x-2 focus:outline-none">
               <div className="flex items-center space-x-2 rounded-full hover:bg-gray-100 p-1 transition-colors">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={defaultUser.image} alt={defaultUser.name} />
+              <Avatar className="h-8 w-8">
+                  <AvatarImage src="/api/placeholder/32/32" alt={username} />
                   <AvatarFallback className="bg-blue-100 text-blue-600">
-                    {defaultUser.initials}
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium text-gray-700">{defaultUser.name}</span>
+                <span className="text-sm font-medium text-gray-700">{username}</span>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

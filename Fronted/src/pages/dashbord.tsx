@@ -1,8 +1,9 @@
 import Navbar from '../element/navbar'
-import React, { useState ,useRef} from 'react';
+import React, { useState ,useRef,useEffect} from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Calendar, Briefcase, BookOpen, Building2, Upload, MapPin, Users, DollarSign,Check,FileText,X} from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import axios from 'axios';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ interface ApplicationHistory {
 }
 
 const JobPortalDashboard = () => {
+  const [username, setUsername] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -204,7 +206,25 @@ const JobPortalDashboard = () => {
     setIsModalOpen(true);
   };
 
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const response = await axios.get("https://interweu-node.onrender.com/api/students", {
+          
+          headers: {
+            Authorization: "Bearer "+ localStorage.getItem("authToken"),
+            user: "Student"
+          },
+        });
+        setUsername(response.data.data.username);
+        console.log(response.data.data.username);
+      } catch (error) {
+        console.error("Error fetching username:", error);
+      }
+    };
 
+    fetchUsername();
+  }, []);
 
 
 
@@ -215,7 +235,7 @@ const JobPortalDashboard = () => {
   return (
     
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Navbar></Navbar>
+      <Navbar username={username}></Navbar>
       <div className={`max-w-7xl mx-auto p-6 ${isModalOpen ? 'blur-sm' : ''}`}>
         {/* Career Track Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
