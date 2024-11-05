@@ -92,4 +92,4 @@ const getJobs = asyncHandler(async (req, res) => {
   res.status(200).json(new apiResponse(200, jobs, "All jobs retrieved successfully"));
 });
 
-export { createJob, updateJob, deleteJob,getJobs };
+export { createJob, updateJob, deleteJob, getJobs };
