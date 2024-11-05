@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const createJob = asyncHandler(async (req, res) => {
-  const authenticatedUser = verifyJWT(req);
+  const authenticatedUser = await verifyJWT(req);
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
@@ -39,7 +39,7 @@ const createJob = asyncHandler(async (req, res) => {
 });
 
 const updateJob = asyncHandler(async (req, res) => {
-  const authenticatedUser = verifyJWT(req);
+  const authenticatedUser = await verifyJWT(req);
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
@@ -69,7 +69,7 @@ const updateJob = asyncHandler(async (req, res) => {
 });
 
 const deleteJob = asyncHandler(async (req, res) => {
-  const authenticatedUser = verifyJWT(req);
+  const authenticatedUser = await verifyJWT(req);
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
@@ -83,4 +83,13 @@ const deleteJob = asyncHandler(async (req, res) => {
   res.status(200).json(new apiResponse(200, job, "Job Closed Successfully"));
 });
 
-export { createJob, updateJob, deleteJob };
+const getJobs = asyncHandler(async (req, res) => {
+  const authenticatedUser = await verifyJWT(req);
+  if (!authenticatedUser) {
+    throw new ApiError(401, "Unauthenticated User");
+  }
+  const jobs = await Job.find();
+  res.status(200).json(new apiResponse(200, jobs, "All jobs retrieved successfully"));
+});
+
+export { createJob, updateJob, deleteJob,getJobs };
