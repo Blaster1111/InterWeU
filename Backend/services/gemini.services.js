@@ -6,16 +6,13 @@ import FormData from 'form-data';
 
 const parseResume = async (file, jobDesc) => {
   try {
-    // Upload the file to Cloudinary and get the URL
     // const resumeUrl = await uploadFileToCloudinary(file.path);
     // console.log("Cloudinary URL:", resumeUrl);
 
-    // Create FormData object
     const formData = new FormData();
     formData.append('resume', fs.createReadStream(file.path), { filename: file.originalname });
     formData.append('job_description', jobDesc);
 
-    // Configure headers for multipart/form-data
     const response = await axios.post("https://interweu-ml.onrender.com/parse_resume", formData, {
       headers: {
         ...formData.getHeaders(),
@@ -25,8 +22,7 @@ const parseResume = async (file, jobDesc) => {
     if (response.status !== 200) {
       throw new ApiError(500, "Failed to parse resume");
     }
-
-    return  response.data;
+    return  response;
   } catch (error) {
     console.error("Error parsing resume:", error.message);
     throw new ApiError(500, error.message || "Error parsing resume");

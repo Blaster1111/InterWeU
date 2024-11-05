@@ -18,6 +18,15 @@ const jobApplicationSchema = new mongoose.Schema(
     parsedData:{
       type:String,
     },
+    parsedResume: {
+      skills: { type: String },
+      education: { type: String },
+      projects: { type: String },
+      experience: { type: String },
+    },
+    strengths:{
+      type:String,
+    },
     atsScore:{
       type:String
     },
