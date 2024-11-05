@@ -1,5 +1,7 @@
 import JobPortalDashboard  from './pages/dashbord'
 import EmployerDashboard   from  './pages/jobposting'
+import { EmployerSignin } from './pages/employeeAuth';
+import { EmployerSignup } from './pages/employeeAuth';
 import Signin  from './pages/signin';
 import Signup from './pages/signup';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
@@ -22,7 +24,9 @@ function App() {
         <Route path="/dashboard" element={<JobPortalDashboard></JobPortalDashboard>} />
 
         {/* Additional Routes for Tabs */}
-        <Route path="/job-postings" element={<EmployerDashboard />} />
+        <Route path="/employer/signin" element={<EmployerSignin />} />
+        <Route path="/employer/signup" element={<EmployerSignup />} />
+        <Route path="/employer/dashboard" element={<EmployerDashboard />} />
        
       </Routes>
     </Router>
