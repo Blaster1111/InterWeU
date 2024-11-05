@@ -31,7 +31,7 @@ const createJobApplication = asyncHandler(async (req, res) => {
     applicantId: authenticatedUser._id,
     resume: "hi",
     atsScore: parsedData.data.gemini_response.ats_score,
-    parsedContent: parsedData.data.gemini_response.full_response,
+    resumeSummary: parsedData.data.gemini_response.full_response,
     strengths: parsedData.data.gemini_response.strengths,
     parsedResume: {
       skills: parsedData.data.parsed_content.skills,

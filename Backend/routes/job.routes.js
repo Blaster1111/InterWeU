@@ -8,6 +8,6 @@ router.put("/create/:id",updateJob);
 
 router.delete("/delete/:id",deleteJob);
 
-router.get("get",getJobs);
+router.get("/get",getJobs);
 
 export default router;

@@ -15,7 +15,7 @@ const jobApplicationSchema = new mongoose.Schema(
     resume: {
       type: String, 
     },
-    parsedData:{
+    resumeSummary:{
       type:String,
     },
     parsedResume: {
