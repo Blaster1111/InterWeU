@@ -13,7 +13,13 @@ const jobApplicationSchema = new mongoose.Schema(
       required: true,
     },
     resume: {
-      type: String,
+      type: String, 
+    },
+    parsedData:{
+      type:String,
+    },
+    atsScore:{
+      type:String
     },
     coverLetter: {
       type: String,

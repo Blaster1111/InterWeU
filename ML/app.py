@@ -62,6 +62,7 @@ def parse_resume():
         return jsonify({"error": "No resume file provided"}), 400
 
     file = request.files['resume']
+    print(file)
     job_desc = request.form.get('job_description')
 
     text = pdf_to_text(file)
