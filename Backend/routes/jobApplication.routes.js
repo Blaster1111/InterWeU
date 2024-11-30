@@ -12,6 +12,6 @@ router.put('/apply/:id', updateJobApplicationStatus);
 
 router.get('/apply',getCandidateApplications);
 
-router.get("/job/:jobId/applications", getJobApplicationsEmployee);
+router.get("/:jobId/applications", getJobApplicationsEmployee);
 
 export default router;
