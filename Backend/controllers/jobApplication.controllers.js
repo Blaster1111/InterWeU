@@ -72,12 +72,30 @@ const getCandidateApplications = asyncHandler(async(req,res)=>{
     throw new ApiError(401, "Unauthenticated User");
   }
   const applications = await JobApplication.find({applicantId:authenticatedUser._id});
-  console.log(applications.length)
   res.status(200).json(new apiResponse(200,applications,"Candidates Job Applications retrieved successfully"));
-})
+});
+
+const getJobApplicationsEmployee = asyncHandler(async (req, res) => {
+  const authenticatedUser = await verifyJWT(req);
+  const { jobId } = req.params; 
+  if (!authenticatedUser) {
+    throw new ApiError(401, "Unauthenticated User");
+  }
+  const candidates = await JobApplication.find({ jobId })
+    .populate("applicantId", "username email") 
+    .populate("jobId", "title"); 
+
+  if (!candidates.length) {
+    throw new ApiError(404, "No candidates found for the specified job");
+  }
+  res.status(200).json(
+    new apiResponse(200, candidates, `Candidates for job ${jobId} fetched successfully`)
+  );
+});
 
 export{
     createJobApplication,
     updateJobApplicationStatus,
     getCandidateApplications,
+    getJobApplicationsEmployee,
 }

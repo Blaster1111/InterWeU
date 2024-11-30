@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { createJobApplication, updateJobApplicationStatus,getCandidateApplications } from "../controllers/jobApplication.controllers.js";
+import { createJobApplication, updateJobApplicationStatus,getCandidateApplications,getJobApplicationsEmployee } from "../controllers/jobApplication.controllers.js";
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -11,5 +11,7 @@ router.post('/apply', upload.single('Resume'), createJobApplication);
 router.put('/apply/:id', updateJobApplicationStatus);
 
 router.get('/apply',getCandidateApplications);
+
+router.get("/job/:jobId/applications", getJobApplicationsEmployee);
 
 export default router;
