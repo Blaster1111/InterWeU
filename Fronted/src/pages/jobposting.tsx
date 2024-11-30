@@ -1,4 +1,4 @@
-  import React, { useState } from 'react';
+  import React, { useEffect, useState } from 'react';
   import Navbar from '../element/navbar';
   import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
   import VideoMeetingScheduler from '../element/VideoMeetingScheduler'
@@ -15,7 +15,7 @@
   } from "@/components/ui/dialog";
   import { Alert, AlertDescription } from "@/components/ui/alert";
   import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+  import axios from 'axios';
   interface JobPosting {
     id: string;
     title: string;
@@ -51,6 +51,9 @@
     const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
+    const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const openScheduler = () => {
       setIsApplicantModalOpen(false); // Close the applicant modal first
@@ -71,22 +74,7 @@
       setIsInterviewModalOpen(false);
     };
     // Sample data
-    const jobPostings: JobPosting[] = [
-      {
-        id: '1',
-        title: 'Senior Software Engineer',
-        department: 'Engineering',
-        location: 'Remote',
-        type: 'Full-time',
-        salary: '$120K - $180K',
-        description: 'Looking for an experienced software engineer...',
-        requirements: ['5+ years experience', 'React expertise', 'Node.js'],
-        postedDate: '2024-10-15',
-        status: 'active',
-        applicants: 12
-      },
-      // Add more sample job postings...
-    ];
+   
 
     const applicants: Applicant[] = [
       {
@@ -103,6 +91,8 @@
       // Add more sample applicants...
     ];
 
+    
+
     const handleNewJobSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       // Handle job posting submission
@@ -113,6 +103,45 @@
       // Update applicant status logic
       console.log(`Updated applicant ${applicantId} status to ${newStatus}`);
     };
+
+ 
+
+    useEffect(() => {
+      const fetchJobPostings = async () => {
+        try {
+          setIsLoading(true);
+  
+          // Get the employeeId from localStorage
+          const employeeId = localStorage.getItem('employeeId');
+  
+          // If no employeeId found, handle the error
+          if (!employeeId) {
+            setError('Employee ID not found');
+            setIsLoading(false);
+            return;
+          }
+  
+          // Replace with your actual API endpoint, using employeeId in the URL
+          const response = await axios.get(`/api/posted/${employeeId}`, {
+            headers: {
+              // Add any necessary authentication headers
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+              'user': 'Employee'
+            }
+          });
+  
+          setJobPostings(response.data);
+          setIsLoading(false);
+        } catch (err) {
+          setError('Failed to fetch job postings');
+          setIsLoading(false);
+          console.error('Error fetching job postings:', err);
+        }
+      };
+  
+      // Fetch job postings when component mounts
+      fetchJobPostings();
+    }, []); // Empty dependency array means this runs once on component mount
 
     return (
       <div className="min-h-screen bg-gray-50 p-6">
