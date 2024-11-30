@@ -10,6 +10,9 @@ const jobSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    industry:{
+      type:String,
+    },
     requirements: {
       type: String,
     },
