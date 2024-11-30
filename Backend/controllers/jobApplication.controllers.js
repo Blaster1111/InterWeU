@@ -85,9 +85,6 @@ const getJobApplicationsEmployee = asyncHandler(async (req, res) => {
     .populate("applicantId", "username email") 
     .populate("jobId", "title"); 
 
-  if (!candidates.length) {
-    throw new ApiError(404, "No candidates found for the specified job");
-  }
   res.status(200).json(
     new apiResponse(200, candidates, `Candidates for job ${jobId} fetched successfully`)
   );
