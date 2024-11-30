@@ -92,4 +92,17 @@ const getJobs = asyncHandler(async (req, res) => {
   res.status(200).json(new apiResponse(200, jobs, "All jobs retrieved successfully"));
 });
 
-export { createJob, updateJob, deleteJob, getJobs };
+const getEmployeePostedJobs = asyncHandler(async (req, res) => {
+  const authenticatedUser = await verifyJWT(req);
+  if (!authenticatedUser) {
+    throw new ApiError(401, 'Unauthenticated User');
+  }
+
+  const employeeId = req.params.employeeId;
+  const jobs = await Job.find({ postedBy: employeeId });
+
+  res.status(200).json(jobs); 
+});
+
+
+export { createJob, updateJob, deleteJob, getJobs,getEmployeePostedJobs };

@@ -33,7 +33,6 @@ export const loginStudent = asyncHandler(async (req, res) => {
 
 export const getStudent = asyncHandler(async (req, res) => {
   const authenticatedUser = await verifyJWT(req);
-  console.log(authenticatedUser);
   if(!authenticatedUser){
     throw new ApiError(401,"Unauthorized Access");
   }
@@ -47,7 +46,6 @@ export const getStudent = asyncHandler(async (req, res) => {
 
 export const editStudent = asyncHandler(async (req, res) => {
   const authenticatedUser = await verifyJWT(req);
-  console.log(authenticatedUser);
   if(!authenticatedUser){
     throw new ApiError(401,"Unauthorized Access");
   }

@@ -1,61 +1,67 @@
-import React from 'react';
-import JobPortalDashboard from './pages/dashbord';
-import EmployerDashboard from './pages/jobposting';
-import { EmployerSignin } from './pages/employeeAuth';
-import { EmployerSignup } from './pages/employeeAuth';
-import Signin from './pages/signin';
-import Signup from './pages/signup';
-import { useAuthContext } from './context/authContext';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthContextProvider } from './context/authContext'; // Make sure this is imported
+import React from 'react'; 
+import JobPortalDashboard from './pages/dashbord'; 
+import EmployerDashboard from './pages/jobposting'; 
+import { EmployerSignin } from './pages/employeeAuth'; 
+import { EmployerSignup } from './pages/employeeAuth'; 
+import Signin from './pages/signin'; 
+import Signup from './pages/signup'; 
+import { useAuthContext } from './context/authContext'; 
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; 
+import { AuthContextProvider } from './context/authContext';  
+import './App.css';  
 
-import './App.css';
+function App() {   
+  return (     
+    <AuthContextProvider>       
+      <Router>         
+        <Routes>           
+          {/* Student/General Routes */}           
+          <Route path="/signin" element={<SigninRedirect />} />           
+          <Route path="/signup" element={<SignupRedirect />} />           
+          <Route path="/dashboard" element={<DashboardRedirect />} />            
 
-function App() {
-  // Remove the useAuthContext here from App to avoid premature context consumption
-  return (
-    <AuthContextProvider> {/* Wrap the entire app with the provider */}
-      <Router>
-        <Routes>
-          {/* Signin & Signup Routes with Redirect if Already Authenticated */}
-          <Route path="/signin" element={<SigninRedirect />} />
-          <Route path="/signup" element={<SignupRedirect />} />
+          {/* Employer/Employee Routes */}           
+          <Route path="/employee/signin" element={<EmployerSigninRedirect />} />           
+          <Route path="/employee/signup" element={<EmployerSignupRedirect />} />           
+          <Route path="/employee/dashboard" element={<EmployerDashboardRedirect />} />            
 
-          {/* Main Dashboard Route */}
-          <Route path="/dashboard" element={<DashboardRedirect />} />
+          {/* Default/Root Redirect */}           
+          <Route path="/" element={<Navigate to="/signin" />} />         
+        </Routes>       
+      </Router>     
+    </AuthContextProvider>   
+  ); 
+}  
 
-          {/* Employer Routes */}
-          <Route path="/employer/signin" element={<EmployerSignin />} />
-          <Route path="/employer/signup" element={<EmployerSignup />} />
-          <Route
-            path="/employer/dashboard"
-            element={<EmployerDashboardRedirect />}
-          />
-        </Routes>
-      </Router>
-    </AuthContextProvider>
-  );
-}
+// Redirect Components
+function SigninRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <Navigate to="/dashboard" /> : <Signin />; 
+}  
 
-// Custom components to handle conditional rendering and redirection
-function SigninRedirect() {
-  const { authUser } = useAuthContext();
-  return authUser ? <Navigate to="/dashboard" /> : <Signin />;
-}
+function SignupRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <Navigate to="/dashboard" /> : <Signup />; 
+}  
 
-function SignupRedirect() {
-  const { authUser } = useAuthContext();
-  return authUser ? <Navigate to="/dashboard" /> : <Signup />;
-}
+function DashboardRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <JobPortalDashboard /> : <Navigate to="/signin" />; 
+}  
 
-function DashboardRedirect() {
-  const { authUser } = useAuthContext();
-  return authUser ? <JobPortalDashboard /> : <Navigate to="/signin" />;
-}
+function EmployerSigninRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <Navigate to="/employee/dashboard" /> : <EmployerSignin />; 
+}  
 
-function EmployerDashboardRedirect() {
-  const { authUser } = useAuthContext();
-  return authUser ? <EmployerDashboard /> : <Navigate to="/employer/signin" />;
-}
+function EmployerSignupRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <Navigate to="/employee/dashboard" /> : <EmployerSignup />; 
+}  
+
+function EmployerDashboardRedirect() {   
+  const { authUser } = useAuthContext();   
+  return authUser ? <EmployerDashboard /> : <Navigate to="/employee/signin" />; 
+}  
 
 export default App;
