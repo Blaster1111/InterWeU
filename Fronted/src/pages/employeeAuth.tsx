@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuthContext } from "../context/authContext";
 import { ArrowRight, Mail, Lock, Building2, User } from "lucide-react";
 
+
 // EmployerSignin Component
 export const EmployerSignin = () => {
   const [username, setUsername] = useState('');
@@ -130,6 +131,7 @@ export const EmployerSignup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const { authUser,setAuthUser } = useAuthContext();
   const navigate = useNavigate();
 
   const handleSignup = async () => {
@@ -158,7 +160,7 @@ export const EmployerSignup = () => {
       localStorage.setItem('employerId', response.data.data.employee._id);
       localStorage.setItem('organizationId', response.data.data.employee.organizationId);
       localStorage.setItem('name', response.data.data.employee.name);
-
+      setAuthUser(response.data.data.employee._id);
       // Reset input fields
       setName('');
       setOrganizationId('');

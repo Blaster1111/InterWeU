@@ -21,26 +21,29 @@ interface AuthContextProviderProps {
 }
 
 export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) => {
-  const [authUser, setAuthUser] = useState<string | null>(null);
-
-  // Sync authUser with localStorage on component mount
-  useEffect(() => {
+  const [authUser, setAuthUser] = useState<string | null>(() => {
+    // Initialize state from localStorage
     const studentId = localStorage.getItem("studentId");
     const employerId = localStorage.getItem("employerId");
+    return studentId || employerId || null;
+  });
 
-    // Set the user from localStorage if available
-    if (studentId) {
-      setAuthUser(studentId);
-    } else if (employerId) {
-      setAuthUser(employerId);
-    } else {
-      setAuthUser(null);
-    }
-  }, []); // This runs only once when the component mounts
-
-  // Debugging log to track if the state updates correctly
+  // Persist authUser to localStorage whenever it changes
   useEffect(() => {
-    console.log("authUser state updated:", authUser);
+    if (authUser) {
+      // Example: Check user type and store accordingly
+      if (authUser.startsWith("student")) {
+        localStorage.setItem("studentId", authUser);
+        localStorage.removeItem("employerId");
+      } else if (authUser.startsWith("employer")) {
+        localStorage.setItem("employerId", authUser);
+        localStorage.removeItem("studentId");
+      }
+    } else {
+      // Clear all user data if logged out
+      localStorage.removeItem("studentId");
+      localStorage.removeItem("employerId");
+    }
   }, [authUser]);
 
   return (
