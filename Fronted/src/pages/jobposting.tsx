@@ -451,7 +451,7 @@
       </div>
       <div>
         <p className="font-semibold">Date Applied:</p>
-        <p>{new Date(selectedApplicant!.dateApplied).toLocaleDateString()}</p>
+        <p>{selectedApplicant?.dateApplied ? new Date(selectedApplicant.dateApplied).toLocaleDateString() : "N/A"}</p>
       </div>
       <div>
         <p className="font-semibold">ATS Score:</p>
