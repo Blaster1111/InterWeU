@@ -18,6 +18,7 @@ const createJob = asyncHandler(async (req, res) => {
     location,
     organizationId,
     postedBy,
+    jobType,
     status = "open",
     benifits,
   } = req.body;
@@ -28,6 +29,7 @@ const createJob = asyncHandler(async (req, res) => {
     title,
     description,
     organizationId,
+    jobType,
     industry,
     postedBy,
     salary,

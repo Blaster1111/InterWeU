@@ -37,6 +37,9 @@ const jobSchema = new mongoose.Schema(
       ref: "Organization",
       required: true,
     },
+    jobType:{
+      type:String,
+    },
     location: {
       type: String,
       required: true,
