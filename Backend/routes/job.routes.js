@@ -10,6 +10,6 @@ router.delete("/delete/:id",deleteJob);
 
 router.get("/get",getJobs);
 
-router.get('/posted/:employeeId', verifyJWT, getEmployeePostedJobs);
+router.get('/posted/:employeeId', getEmployeePostedJobs);
 
 export default router;
