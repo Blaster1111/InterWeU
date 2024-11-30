@@ -17,21 +17,23 @@
   import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
   import axios from 'axios';
   interface JobPosting {
-    id: string;
+    _id: string;
     title: string;
+    industry: string;
     department: string;
     location: string;
+    benefits:string;
     type: string;
     salary: string;
     description: string;
-    requirements: string[];
-    postedDate: string;
+    requirements: string;
+    datePosted: string;
     status: 'active' | 'closed';
     applicants: number;
   }
 
   interface Applicant {
-    id: string;
+    _id: string;
     name: string;
     email: string;
     phone: string;
@@ -41,6 +43,13 @@
     resumeUrl: string;
     jobTitle: string;
   }
+
+  interface ErrorState {
+    applicants: string | null;
+    jobPostings: string | null;
+  }
+  
+  
 
   const EmployerDashboard = () => {
     const [username, setUsername] = useState("Google");
@@ -52,8 +61,16 @@
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+
+    const [applicants, setApplicants] = useState<Applicant[]>([]);
+    const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
+
+    const [isLoading, setIsLoading] = useState({ applicants: false, jobPostings: false });
+    const [error, setError] = useState<ErrorState>({
+      applicants: null,
+      jobPostings: null,
+    });
+
 
     const openScheduler = () => {
       setIsApplicantModalOpen(false); // Close the applicant modal first
@@ -76,72 +93,98 @@
     // Sample data
    
 
-    const applicants: Applicant[] = [
-      {
-        id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '(555) 123-4567',
-        experience: '5 years',
-        appliedDate: '2024-10-20',
-        status: 'new',
-        resumeUrl: '/resumes/john-doe.pdf',
-        jobTitle: 'Senior Software Engineer'
-      },
-      // Add more sample applicants...
-    ];
-
     
-
-    const handleNewJobSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      // Handle job posting submission
-      setIsNewJobModalOpen(false);
-    };
-
-    const handleApplicantStatusChange = (applicantId: string, newStatus: Applicant['status']) => {
-      // Update applicant status logic
-      console.log(`Updated applicant ${applicantId} status to ${newStatus}`);
-    };
-
- 
 
     useEffect(() => {
       const fetchJobPostings = async () => {
         try {
-          setIsLoading(true);
-  
-          // Get the employeeId from localStorage
-          const employeeId = localStorage.getItem('employeeId');
-  
-          // If no employeeId found, handle the error
+          setIsLoading(prev => ({ ...prev, jobPostings: true })); // Set loading for job postings
+          const employeeId = localStorage.getItem('employerId');
           if (!employeeId) {
-            setError('Employee ID not found');
-            setIsLoading(false);
+            setError(prev => ({ ...prev, jobPostings: 'Employee ID not found' }));
+            setIsLoading(prev => ({ ...prev, jobPostings: false }));
             return;
           }
-  
-          // Replace with your actual API endpoint, using employeeId in the URL
-          const response = await axios.get(`/api/posted/${employeeId}`, {
+      
+          const response = await axios.get(`http://localhost:3000/api/job/posted/${employeeId}`, {
             headers: {
-              // Add any necessary authentication headers
-              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+              'Authorization': `Bearer ${localStorage.getItem('employerToken')}`,
               'user': 'Employee'
             }
           });
-  
+      
           setJobPostings(response.data);
-          setIsLoading(false);
+          setIsLoading(prev => ({ ...prev, jobPostings: false })); // Stop loading for job postings
         } catch (err) {
-          setError('Failed to fetch job postings');
-          setIsLoading(false);
+          setError(prev => ({ ...prev, jobPostings: 'Failed to fetch job postings' }));
+          setIsLoading(prev => ({ ...prev, jobPostings: false }));
           console.error('Error fetching job postings:', err);
         }
       };
-  
-      // Fetch job postings when component mounts
       fetchJobPostings();
-    }, []); // Empty dependency array means this runs once on component mount
+    }, []);
+    
+
+    const fetchApplicantsForJob = async (jobId: string) => {
+      try {
+        setIsLoading(prev => ({ ...prev, applicants: true })); // Set loading for applicants
+        setApplicants([]); // Clear previous applicants
+        
+        const response = await axios.get<Applicant[]>(`http://localhost:3000/api/job/${jobId}/applications`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('employerToken')}`,
+            'user': 'Employee'
+          }
+        });
+        console.log(response)
+        
+        setApplicants(Array.isArray(response.data) ? response.data : []);
+        setActiveTab('applicants');
+       
+        setIsLoading(prev => ({ ...prev, applicants: false })); // Stop loading for applicants
+      } catch (err) {
+        setError(prev => ({ ...prev, applicants: 'Failed to fetch applicants for this job' }));
+        setIsLoading(prev => ({ ...prev, applicants: false })); // Stop loading even on failure
+        console.error('Error fetching applicants:', err);
+      }
+    };
+    const handleJobPostingClick = (job: JobPosting) => {
+      setSelectedJob(job);
+      fetchApplicantsForJob(job._id);
+    };
+
+
+
+    const handleNewJobSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        // Replace with actual form data and API endpoint
+        const response = await axios.post('/api/job-postings', {
+          // Form data would go here
+        });
+        
+        // Add the new job posting to the list
+        setJobPostings([...jobPostings, response.data]);
+        setIsNewJobModalOpen(false);
+      } catch (err) {
+        console.error('Error creating job posting:', err);
+        // Optionally set an error state to show to the user
+      }
+    };
+
+    const handleApplicantStatusChange = async (applicantId: string, newStatus: Applicant['status']) => {
+      try {
+        // Replace with actual API endpoint for updating applicant status
+        await axios.patch(`/api/applicants/${applicantId}`, { status: newStatus });
+        
+        // Optionally update local state or refetch applicants
+        console.log(`Updated applicant ${applicantId} status to ${newStatus}`);
+      } catch (err) {
+        console.error('Error updating applicant status:', err);
+      }
+    };
+    
+    
 
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -166,8 +209,10 @@
           {/* Job Postings Tab */}
           <TabsContent value="postings">
             <div className="grid gap-4">
-              {jobPostings.map((job) => (
-                <Card key={job.id}>
+              {
+              jobPostings.map((job) => (
+                <Card key={job._id}
+                onClick={() => handleJobPostingClick(job)}>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
                       <div>
@@ -175,7 +220,7 @@
                         <div className="flex gap-4 mt-2 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Building2 className="w-4 h-4" />
-                            {job.department}
+                            {job.industry}
                           </span>
                           <span className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
@@ -183,7 +228,7 @@
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            Posted {job.postedDate}
+                            Posted {job.datePosted.slice(0, 9)}
                           </span>
                         </div>
                       </div>
@@ -236,7 +281,7 @@
                 <div className="divide-y">
                   {applicants.map((applicant) => (
                     <div
-                      key={applicant.id}
+                      key={applicant._id}
                       className="py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
                       onClick={() => {
                         setSelectedApplicant(applicant);
@@ -449,13 +494,13 @@
 
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => handleApplicantStatusChange(selectedApplicant.id, "shortlisted")}
+                    onClick={() => handleApplicantStatusChange(selectedApplicant._id, "shortlisted")}
                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                   >
                     Shortlist
                   </button>
                   <button
-                    onClick={() => handleApplicantStatusChange(selectedApplicant.id, "rejected")}
+                    onClick={() => handleApplicantStatusChange(selectedApplicant._id, "rejected")}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
                     Reject
