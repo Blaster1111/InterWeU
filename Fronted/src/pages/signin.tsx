@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { useAuthContext } from "../context/authContext";
 import { ArrowRight, Mail, Lock, User } from "lucide-react";
 
 const Signin = () => {
@@ -8,21 +9,24 @@ const Signin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { authUser,setAuthUser } = useAuthContext();
 
   const handleSignin = async () => {
     try {
-      const response = await axios.post('https://interweu-node.onrender.com/api/students/login', {
+      const response = await axios.post('http://localhost:3000/api/students/login', {
         email,
         password,
       });
       console.log(response);
       localStorage.setItem('authToken', response.data.data.accessToken);
       localStorage.setItem('studentId', response.data.data.student._id );
-      
+      await setAuthUser(response.data.data.student._id);
       
       
       setEmail('');
       setPassword('');
+      console.log("hello")
+      console.log(authUser)
       navigate('/dashboard');
     } catch (error: unknown) {
       // Type-safe error handling

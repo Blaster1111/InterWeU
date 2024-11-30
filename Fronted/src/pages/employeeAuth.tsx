@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { useAuthContext } from "../context/authContext";
 import { ArrowRight, Mail, Lock, Building2, User } from "lucide-react";
 
 // EmployerSignin Component
@@ -8,10 +9,10 @@ export const EmployerSignin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
+  const { setAuthUser } = useAuthContext();
   const handleSignin = async () => {
     try {
-      const response = await axios.post('YOUR_API_ENDPOINT/employers/login', {
+      const response = await axios.post('http://localhost:3000/api/employers/login', {
         email,
         password,
       });
@@ -19,7 +20,7 @@ export const EmployerSignin = () => {
       localStorage.setItem('employerToken', response.data.accessToken);
       localStorage.setItem('employerId', response.data.employer.id);
       localStorage.setItem('companyName', response.data.employer.companyName);
-      
+      setAuthUser(response.data.student._id);
       setEmail('');
       setPassword('');
       navigate('/employer/dashboard');
@@ -122,12 +123,20 @@ export const EmployerSignup = () => {
 
   const handleSignup = async () => {
     try {
-      const response = await axios.post('YOUR_API_ENDPOINT/employers/register', {
+      console.log({
+        companyName,
+        email,
+        password,
+        industry
+      })
+      const response = await axios.post('http://localhost:3000/api/employers/register', {
         companyName,
         email,
         password,
         industry
       });
+      
+      console.log(response)
       
       localStorage.setItem('employerToken', response.data.accessToken);
       localStorage.setItem('employerId', response.data.employer.id);

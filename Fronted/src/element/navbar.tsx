@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import Logo from './logo.jpg';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -85,15 +86,16 @@ const Navbar: React.FC<NavbarProps> = ({ username }) => {
     <nav className="bg-white border-b">
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
         
-        <div className="flex items-center space-x-3">
-          {/* <img 
-            src="/api/placeholder/128/40" 
+        <div className="flex items-center space-x-3 overflow-hidden">
+          <img 
+            src={Logo}
             alt="Logo" 
-            className="h-8 w-auto" 
-          /> */}
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-            HireMe
-          </span>
+             className="h-32 w-auto object-contain"
+             
+          />
+          {/* <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            
+          </span> */}
         </div>
 
         {/* Navigation Menu */}

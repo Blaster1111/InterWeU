@@ -35,7 +35,7 @@ const VideoMeetingScheduler: React.FC<VideoMeetingSchedulerProps> = ({ onClose }
     setIsVideoModalOpen(true);
   };
 
-  const startCall = async () => {
+   const startCall = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 1280, height: 720 }, 
@@ -48,9 +48,14 @@ const VideoMeetingScheduler: React.FC<VideoMeetingSchedulerProps> = ({ onClose }
       setIsCallActive(true);
     } catch (err) {
       console.error("Error accessing media devices.", err);
+      // Display a user-friendly error message
+      setIsVideoModalOpen(false);
+      setIsCallActive(false);
+      setStream(null);
+      onClose();
+      alert("Sorry, we were unable to access your camera. Please check your camera permissions and try again.");
     }
   };
-
   const endCall = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());

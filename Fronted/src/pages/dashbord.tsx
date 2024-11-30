@@ -209,7 +209,7 @@ const JobPortalDashboard = () => {
   useEffect(() => {
     const fetchUsername = async () => {
       try {
-        const response = await axios.get("https://interweu-node.onrender.com/api/students", {
+        const response = await axios.get("http://localhost:3000/api/students", {
           
           headers: {
             Authorization: "Bearer "+ localStorage.getItem("authToken"),
@@ -217,7 +217,7 @@ const JobPortalDashboard = () => {
           },
         });
         setUsername(response.data.data.username);
-        console.log(response.data.data.username);
+        
       } catch (error) {
         console.error("Error fetching username:", error);
       }
