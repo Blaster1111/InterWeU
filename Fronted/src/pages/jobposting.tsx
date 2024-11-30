@@ -33,15 +33,15 @@
   }
 
   interface Applicant {
-    _id: string;
-    name: string;
-    email: string;
-    phone: string;
-    experience: string;
-    appliedDate: string;
-    status: 'new' | 'reviewed' | 'shortlisted' | 'rejected';
-    resumeUrl: string;
-    jobTitle: string;
+    _id:string;
+    resumeSummary: string;
+    strengths: string;
+    atsScore: string;
+    dateApplied: string;
+    status:string;
+    title:string
+    username:string;
+    email:string
   }
 
   interface ErrorState {
@@ -124,30 +124,43 @@
       fetchJobPostings();
     }, []);
     
-
     const fetchApplicantsForJob = async (jobId: string) => {
       try {
-        setIsLoading(prev => ({ ...prev, applicants: true })); // Set loading for applicants
+        setIsLoading(prev => ({ ...prev, applicants: true })); 
         setApplicants([]); // Clear previous applicants
         
-        const response = await axios.get<Applicant[]>(`http://localhost:3000/api/job/${jobId}/applications`, {
+        const response = await axios.get<{ data: any[] }>(`http://localhost:3000/api/job/${jobId}/applications`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('employerToken')}`,
             'user': 'Employee'
           }
         });
-        console.log(response)
         
-        setApplicants(Array.isArray(response.data) ? response.data : []);
+        // Transform the response to match our Applicant interface
+        const transformedApplicants:any = response.data.data.map(applicant => ({
+          _id: applicant._id,
+          dateApplied: applicant.dateApplied,
+          atsScore: applicant.atsScore,
+          strengths: applicant.strengths,
+          resumeSummary: applicant.resumeSummary,
+          status: applicant.status,
+          jobTitle: applicant.jobId.title,
+          username: applicant.applicantId.username,
+          email: applicant.applicantId.email
+        }));
+  
+        setApplicants(transformedApplicants);
         setActiveTab('applicants');
        
-        setIsLoading(prev => ({ ...prev, applicants: false })); // Stop loading for applicants
+        setIsLoading(prev => ({ ...prev, applicants: false })); 
       } catch (err) {
         setError(prev => ({ ...prev, applicants: 'Failed to fetch applicants for this job' }));
-        setIsLoading(prev => ({ ...prev, applicants: false })); // Stop loading even on failure
+        setIsLoading(prev => ({ ...prev, applicants: false })); 
         console.error('Error fetching applicants:', err);
       }
     };
+    
+
     const handleJobPostingClick = (job: JobPosting) => {
       setSelectedJob(job);
       fetchApplicantsForJob(job._id);
@@ -189,7 +202,7 @@
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <Navbar username={username}></Navbar>
-        <Tabs defaultValue="postings" className="max-w-7xl mx-auto">
+        <Tabs defaultValue="postings" value={activeTab} onValueChange={setActiveTab} className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <TabsList>
               <TabsTrigger value="postings">Job Postings</TabsTrigger>
@@ -249,72 +262,81 @@
 
           {/* Applicants Tab */}
           <TabsContent value="applicants">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-4">
-                    <div className="relative">
-                      <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search applicants..."
-                        className="pl-10 pr-4 py-2 border rounded-md"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <select
-                      className="px-4 py-2 border rounded-md"
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                      <option value="all">All Status</option>
-                      <option value="new">New</option>
-                      <option value="reviewed">Reviewed</option>
-                      <option value="shortlisted">Shortlisted</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
+  <Card>
+    <CardHeader>
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4">
+          <div className="relative">
+            <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search applicants..."
+              className="pl-10 pr-4 py-2 border rounded-md"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select
+            className="px-4 py-2 border rounded-md"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="Applied">Applied</option>
+            <option value="Reviewed">Reviewed</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          </div>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="divide-y">
+        {applicants
+          .filter(applicant => 
+            (filterStatus === 'all' || applicant.status === filterStatus) &&
+            (searchTerm === '' || 
+             applicant.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             applicant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             applicant.title.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          )
+          .map((applicant) => (
+            <div
+              key={applicant._id}
+              className="py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+              onClick={() => {
+                setSelectedApplicant(applicant);
+                setIsApplicantModalOpen(true);
+              }}
+            >
+              <div>
+                <h4 className="font-medium text-gray-800">{applicant.username}</h4>
+                <p className="text-sm text-gray-600">{applicant.title}</p>
+                <div className="flex gap-4 mt-1 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <Mail className="w-4 h-4" />
+                    {applicant.email}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Applied {new Date(applicant.dateApplied).toLocaleDateString()}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="divide-y">
-                  {applicants.map((applicant) => (
-                    <div
-                      key={applicant._id}
-                      className="py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
-                      onClick={() => {
-                        setSelectedApplicant(applicant);
-                        setIsApplicantModalOpen(true);
-                      }}
-                    >
-                      <div>
-                        <h4 className="font-medium text-gray-800">{applicant.name}</h4>
-                        <p className="text-sm text-gray-600">{applicant.jobTitle}</p>
-                        <div className="flex gap-4 mt-1 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-4 h-4" />
-                            {applicant.email}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            Applied {applicant.appliedDate}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm
-                        ${applicant.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                        applicant.status === 'reviewed' ? 'bg-yellow-100 text-yellow-800' :
-                        applicant.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'}`}>
-                        {applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-sm
+                ${applicant.status === 'Applied' ? 'bg-blue-100 text-blue-800' :
+                applicant.status === 'Reviewed' ? 'bg-yellow-100 text-yellow-800' :
+                applicant.status === 'Shortlisted' ? 'bg-green-100 text-green-800' :
+                'bg-red-100 text-red-800'}`}>
+                {applicant.status}
+              </span>
+            </div>
+          ))}
+      </div>
+    </CardContent>
+  </Card>
+</TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">
@@ -413,110 +435,42 @@
         </Dialog>
 
         {/* Applicant Details Modal */}
-        <Dialog open={isApplicantModalOpen && !isInterviewModalOpen} onOpenChange={setIsApplicantModalOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Applicant Details</DialogTitle>
-            </DialogHeader>
-            {selectedApplicant && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-semibold">{selectedApplicant.name}</h3>
-                    <p className="text-gray-600">{selectedApplicant.jobTitle}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-full">
-                      <ThumbsUp className="w-5 h-5 text-green-600" />
-                    </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-full">
-                      <ThumbsDown className="w-5 h-5 text-red-600" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      {selectedApplicant.email}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      {selectedApplicant.phone}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      {selectedApplicant.experience} of experience
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Applied on {selectedApplicant.appliedDate}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <a
-                      href={selectedApplicant.resumeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-600 hover:underline"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download Resume
-                    </a>
-                    <p>
-                      Status:{" "}
-                      <span
-                        className={
-                          `px-3 py-1 rounded-full text-sm ${
-                            selectedApplicant.status === "new"
-                              ? "bg-blue-100 text-blue-800"
-                              : selectedApplicant.status === "reviewed"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : selectedApplicant.status === "shortlisted"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`
-                        }
-                      >
-                        {selectedApplicant.status.charAt(0).toUpperCase() +
-                          selectedApplicant.status.slice(1)}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-
-                <Alert>
-                  <AlertDescription>
-                    Ensure you have reviewed all qualifications before making a decision.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => handleApplicantStatusChange(selectedApplicant._id, "shortlisted")}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                  >
-                    Shortlist
-                  </button>
-                  <button
-                    onClick={() => handleApplicantStatusChange(selectedApplicant._id, "rejected")}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Reject
-                  </button>
-                  <button
-                      onClick={openModal}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Schedule Interview
-                  </button>   
-                        
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <Dialog open={isApplicantModalOpen} onOpenChange={setIsApplicantModalOpen}>
+  <DialogContent className="max-w-lg p-4">
+    <DialogHeader>
+      <DialogTitle>Applicant Details</DialogTitle>
+    </DialogHeader>
+    <div className="max-h-96 overflow-y-auto space-y-4">
+      <div>
+        <p className="font-semibold">Name:</p>
+        <p>{selectedApplicant?.username}</p>
+      </div>
+      <div>
+        <p className="font-semibold">Email:</p>
+        <p>{selectedApplicant?.email}</p>
+      </div>
+      <div>
+        <p className="font-semibold">Date Applied:</p>
+        <p>{new Date(selectedApplicant!.dateApplied).toLocaleDateString()}</p>
+      </div>
+      <div>
+        <p className="font-semibold">ATS Score:</p>
+        <p>{selectedApplicant?.atsScore}</p>
+      </div>
+      <div>
+        <p className="font-semibold">Strengths:</p>
+        <p>{selectedApplicant?.strengths}</p>
+      </div>
+      <div>
+        <p className="font-semibold">Resume Summary:</p>
+        <p>{selectedApplicant?.resumeSummary}</p>
+      </div>
+    </div>
+    <div className="flex justify-end gap-4 mt-4">
+      <button className="btn-primary" onClick={openScheduler}>Schedule Interview</button>
+    </div>
+  </DialogContent>
+</Dialog>
         {/* Conditionally Render VideoMeetingScheduler */}
         {isInterviewModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
