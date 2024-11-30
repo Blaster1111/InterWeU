@@ -22,14 +22,15 @@ export const EmployerSignin = () => {
       // Store authentication data
       console.log(response)
       localStorage.setItem('employerToken', response.data.data.token.accessToken);
-      localStorage.setItem('employerId', response.data.data.employee.id);
+      localStorage.setItem('employerId', response.data.data.employee._id);
       localStorage.setItem('organizationId', response.data.data.employee.organizationId);
+      localStorage.setItem('name',response.data.data.employee.name);
       setAuthUser(response.data.data.employee._id);
 
       // Reset form and navigate to dashboard
       setUsername('');
       setPassword('');
-      navigate('/employer/dashboard');
+      navigate('/employee/dashboard');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data?.message || error.message);
@@ -169,7 +170,7 @@ export const EmployerSignup = () => {
       setPassword('');
       setRole('');
 
-      navigate('/employer/dashboard');
+      navigate('/employee/dashboard');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data?.message || error.message);
