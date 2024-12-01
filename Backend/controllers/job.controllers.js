@@ -92,7 +92,11 @@ const getJobs = asyncHandler(async (req, res) => {
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
-  const jobs = await Job.find();
+  const jobs = await Job.find().populate({
+    path: "organizationId",
+    select: "name email phoneNo organizationType", 
+  });
+
   res.status(200).json(new apiResponse(200, jobs, "All jobs retrieved successfully"));
 });
 
