@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify
 import fitz  # PyMuPDF
 import re
-import spacy
-from spacy.matcher import Matcher
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -153,14 +151,8 @@ def parse_resume():
         'phone number': get_phone_numbers(text)
     }
     
+    resume_imp_content = " ".join(content.values())
     parsed_content.update(content)
-    parsed_content['skills'] += parsed_content['technical skills']
-    # Combine key resume content for Gemini API
-    resume_imp_content = " ".join([
-        parsed_content['skills'], parsed_content['experience'], parsed_content['projects']
-    ])
-
-    del parsed_content['technical skills']
 
     # Prepare prompt for Gemini API
     prompt = f"These are the skills parsed from a resume: {resume_imp_content} and this is the job description: {job_desc}. Give response in the following pattern: ATS score: [estimated number out of 100]\n Strenghts:\nImprovements and skills required: "
