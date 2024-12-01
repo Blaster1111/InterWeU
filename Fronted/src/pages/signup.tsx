@@ -19,12 +19,12 @@ const Signup = () => {
         password,
       });
       console.log(response)
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.data.data.accessToken);
       setUserName('');
       setEmail('');
       setPassword('');
       localStorage.setItem('studentId', response.data.data.student._id );
-      setAuthUser(response.data.student._id);
+      setAuthUser(response.data.data.student._id);
       navigate('/dashboard');
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
