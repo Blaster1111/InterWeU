@@ -7,9 +7,10 @@ import {
   Plus, Edit, Trash2, Search, Filter,
   Mail, Phone, Download, ThumbsUp, ThumbsDown
 } from 'lucide-react';
-import {
+import { 
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -24,7 +25,7 @@ interface JobPosting {
   location: string;
   benefits:string;
   type: string;
-  salary: string;
+  salary: number;
   description: string;
   requirements: string;
   datePosted: string;
@@ -71,6 +72,87 @@ const EmployerDashboard = () => {
     jobPostings: null,
   });
 
+  const [jobPostingForm, setJobPostingForm] = useState({
+    title: '',
+    description: '',
+    requirements: '',
+    industry: '',
+    salary: 0,
+    location: '',
+    jobType: '',
+    benefits: ''
+  });
+
+  const handleJobPostingFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setJobPostingForm(prev => ({
+      ...prev,
+      [name]: name === 'salary' ? Number(value) : value  // Convert salary to number
+    }));
+  };
+
+  const handleCreateJobPosting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form data
+    if (!jobPostingForm.title || !jobPostingForm.description) {
+      alert('Please fill in all required fields');
+      return;
+    }
+  
+    const organizationId = localStorage.getItem('organizationId');
+    const postedBy = localStorage.getItem('employerId');
+  
+    if (!organizationId || !postedBy) {
+      alert('Organization ID or Employee ID is missing');
+      return;
+    }
+  
+    const jobData = {
+      ...jobPostingForm,
+      organizationId,
+      postedBy,
+      status: 'open',
+      applicants: 0, // Initialize applicants to 0
+      datePosted: new Date().toISOString() // Add current date
+    };
+  
+    try {
+      const response = await axios.post('http://localhost:3000/api/job/create', jobData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('employerToken')}`,
+          'user': 'Employee'
+        }
+      });
+  
+      // Ensure the response data is added to the existing array
+      if (response.data.success) {
+        setJobPostings((prevPostings) => [...prevPostings, response.data.data]);
+    }
+      
+      // Reset form and close modal
+      setJobPostingForm({
+        title: '',
+        description: '',
+        requirements: '',
+        industry: '',
+        salary: 0,
+        location: '',
+        jobType: '',
+        benefits: ''
+      });
+      setIsNewJobModalOpen(false);
+    } catch (error) {
+      console.error('Error creating job posting:', error);
+      
+      // More detailed error handling
+      if (axios.isAxiosError(error)) {
+        alert(`Error: ${error.response?.data?.message || 'Failed to create job posting'}`);
+      } else {
+        alert('An unexpected error occurred');
+      }
+    }
+  };
 
   const openScheduler = () => {
     setIsApplicantModalOpen(false); // Close the applicant modal first
@@ -241,7 +323,7 @@ const EmployerDashboard = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          Posted {job.datePosted.slice(0, 9)}
+                          Posted {job.datePosted ? job.datePosted.slice(0, 10) : 'N/A'}
                         </span>
                       </div>
                     </div>
@@ -368,71 +450,164 @@ const EmployerDashboard = () => {
 
       {/* New Job Modal */}
       <Dialog open={isNewJobModalOpen} onOpenChange={setIsNewJobModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Post New Job</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleNewJobSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Job Title</label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Department</label>
-              <input
-                type="text"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Location</label>
-                <input
-                  type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Type</label>
-                <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <option>Full-time</option>
-                  <option>Part-time</option>
-                  <option>Contract</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                rows={4}
-                required
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsNewJobModalOpen(false)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Post Job
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+    <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="text-2xl font-bold text-gray-800">
+          Create a New Job Posting
+        </DialogTitle>
+      </DialogHeader>
+      <DialogDescription>
+    Please fill out the form below to create a new job posting.
+  </DialogDescription>
+      
+      <form onSubmit={handleCreateJobPosting} className="space-y-6 p-4">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Job Title
+            </label>
+            <input
+              name="title"
+              type="text"
+              value={jobPostingForm.title}
+              onChange={handleJobPostingFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Senior Software Engineer"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Industry
+            </label>
+            <input
+              name="industry"
+              type="text"
+              value={jobPostingForm.industry}
+              onChange={handleJobPostingFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. Technology"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Job Description
+          </label>
+          <textarea
+            name="description"
+            rows={4}
+            value={jobPostingForm.description}
+            onChange={handleJobPostingFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Provide a detailed description of the job role..."
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Job Requirements
+          </label>
+          <textarea
+            name="requirements"
+            rows={4}
+            value={jobPostingForm.requirements}
+            onChange={handleJobPostingFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="List the key requirements for the position..."
+            required
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location
+            </label>
+            <input
+              name="location"
+              type="text"
+              value={jobPostingForm.location}
+              onChange={handleJobPostingFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g. San Francisco, CA"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Job Type
+            </label>
+            <select
+              name="jobType"
+              value={jobPostingForm.jobType}
+              onChange={handleJobPostingFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select Job Type</option>
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Contract">Contract</option>
+              <option value="Remote">Remote</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Salary
+  </label>
+  <input
+    name="salary"
+    type="number"  
+    value={jobPostingForm.salary}
+    onChange={handleJobPostingFormChange}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    placeholder="e.g. 100000"
+    required
+  />
+</div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Benefits
+            </label>
+            <textarea
+              name="benefits"
+              rows={3}
+              value={jobPostingForm.benefits}
+              onChange={handleJobPostingFormChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="List key benefits and perks..."
+              required
+            />
+          </div>
+        
+
+        <div className="flex justify-end space-x-4 mt-6">
+          <button 
+            type="button"
+            onClick={() => setIsNewJobModalOpen(false)}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Post Job
+          </button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
 
         {/* Applicant Details Modal */}
         <Dialog open={isApplicantModalOpen} onOpenChange={setIsApplicantModalOpen}>
