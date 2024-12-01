@@ -66,14 +66,43 @@ const updateJobApplicationStatus = asyncHandler(async (req, res) => {
   res.status(200).json(new apiResponse(200, jobApplication, "Job Application Status Updated Successfully"));
 });
 
-const getCandidateApplications = asyncHandler(async(req,res)=>{
+const getCandidateApplications = asyncHandler(async (req, res) => {
   const authenticatedUser = await verifyJWT(req);
   if (!authenticatedUser) {
     throw new ApiError(401, "Unauthenticated User");
   }
-  const applications = await JobApplication.find({applicantId:authenticatedUser._id});
-  res.status(200).json(new apiResponse(200,applications,"Candidates Job Applications retrieved successfully"));
+
+  const applications = await JobApplication.find({ applicantId: authenticatedUser._id })
+    .populate({
+      path: "jobId",
+      select: "title industry salary organizationId",
+      populate: {
+        path: "organizationId",
+        model: "Organization",
+        select: "name",
+      },
+    })
+    .select("-atsScore -parsedResume -strengths -resumeSummary -resume -applicantId -coverLetter");
+
+  const formattedApplications = applications.map((application) => ({
+    _id: application._id,
+    job: {
+      title: application.jobId?.title,
+      industry: application.jobId?.industry,
+      salary: application.jobId?.salary,
+      organizationName: application.jobId?.organizationId?.name,
+    },
+    status: application.status,
+    dateApplied: application.dateApplied,
+    createdAt: application.createdAt,
+    updatedAt: application.updatedAt,
+  }));
+
+  res.status(200).json(
+    new apiResponse(200, formattedApplications, "Candidate's Job Applications retrieved successfully")
+  );
 });
+
 
 const getJobApplicationsEmployee = asyncHandler(async (req, res) => {
   const authenticatedUser = await verifyJWT(req);
