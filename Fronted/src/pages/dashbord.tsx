@@ -368,11 +368,6 @@ const handleCloseModal = () => {
   };
 
  
-
-
-
-
-
  
 
   return (
@@ -764,7 +759,7 @@ const handleCloseModal = () => {
   </div>
   </DialogContent>
 </Dialog>
-    // Add this Dialog component just before the closing div of your main component
+   
     <Dialog 
   open={isSuccessPopupOpen} 
   onOpenChange={setIsSuccessPopupOpen}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import Navbar from '../element/navbar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import VideoMeetingScheduler from '../element/VideoMeetingScheduler'
@@ -294,7 +295,7 @@ const EmployerDashboard = () => {
             
             <button
               onClick={() => setIsNewJobModalOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 m-2 hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Post New Job
@@ -302,64 +303,89 @@ const EmployerDashboard = () => {
           </div>
 
         {/* Job Postings Tab */}
-        <TabsContent value="postings">
-          <div className="grid gap-4">
-            {
-            jobPostings.map((job) => (
-              <Card key={job._id}
-              onClick={() => handleJobPostingClick(job)}>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-800">{job.title}</h3>
-                      <div className="flex gap-4 mt-2 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Building2 className="w-4 h-4" />
-                          {job.industry}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {job.applicants} applicants
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          Posted {job.datePosted ? job.datePosted.slice(0, 10) : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="p-2 hover:bg-gray-100 rounded-full">
-                        <Edit className="w-5 h-5 text-gray-600" />
-                      </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-full">
-                        <Trash2 className="w-5 h-5 text-gray-600" />
-                      </button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+        
+
+<TabsContent value="postings">
+  <div className="grid gap-4">
+    {jobPostings.map((job) => (
+      <Card 
+        key={job._id} 
+        onClick={() => handleJobPostingClick(job)}
+        className="hover:shadow-lg transition-shadow duration-200"
+      >
+ <CardContent className="p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+ <div className="flex items-start justify-between">
+  {/* Title Section */}
+  <h3 className="text-lg font-bold text-gray-800 flex-1 text-left m-0 p-0">
+    {job.title}
+  </h3>
+
+  {/* Action Buttons */}
+  <div className="flex gap-3">
+    <button
+      className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+      aria-label="Edit Job"
+    >
+      <Edit className="w-5 h-5" />
+    </button>
+    <button
+      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+      aria-label="Delete Job"
+    >
+      <Trash2 className="w-5 h-5" />
+    </button>
+  </div>
+</div>
+
+
+
+  {/* Industry and Date Section */}
+  <div className="flex gap-4 mt-2 text-sm text-gray-600">
+    <span className="flex items-center gap-1 min-w-[100px]">
+      <Building2 className="w-4 h-4" />
+      {job.industry}
+    </span>
+
+    <span className="flex items-center gap-1">
+      <Calendar className="w-4 h-4" />
+      {job.datePosted
+        ? `${formatDistanceToNow(new Date(job.datePosted), { addSuffix: true })}`
+        : 'Date not available'}
+    </span>
+  </div>
+</CardContent>
+
+
+
+
+      </Card>
+    ))}
+  </div>
+</TabsContent>;
+
 
           {/* Applicants Tab */}
           <TabsContent value="applicants">
-  <Card>
-    <CardHeader>
+  <Card className="border border-gray-200 rounded-lg shadow-sm">
+    <CardHeader className="bg-gray-50 p-4 rounded-t-lg">
       <div className="flex justify-between items-center">
+        {/* Search and Filter Section */}
         <div className="flex gap-4">
+          {/* Search Bar */}
           <div className="relative">
             <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
             <input
               type="text"
               placeholder="Search applicants..."
-              className="pl-10 pr-4 py-2 border rounded-md"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring focus:ring-blue-100 focus:border-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          {/* Filter Dropdown */}
           <select
-            className="px-4 py-2 border rounded-md"
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm bg-white focus:ring focus:ring-blue-100 focus:border-blue-500"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -369,56 +395,76 @@ const EmployerDashboard = () => {
             <option value="Shortlisted">Shortlisted</option>
             <option value="Rejected">Rejected</option>
           </select>
-          </div>
+        </div>
       </div>
     </CardHeader>
-    <CardContent>
-      <div className="divide-y">
-        {applicants
-          .filter(applicant => 
-            (filterStatus === 'all' || applicant.status === filterStatus) &&
-            (searchTerm === '' || 
-             applicant.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             applicant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             applicant.title.toLowerCase().includes(searchTerm.toLowerCase())
+
+    <CardContent className="p-4">
+      <div className="divide-y divide-gray-200">
+        {applicants.length > 0 ? (
+          applicants
+            .filter(
+              (applicant) =>
+                (filterStatus === "all" || applicant.status === filterStatus) &&
+                (searchTerm === "" ||
+                  applicant.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  applicant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  applicant.title.toLowerCase().includes(searchTerm.toLowerCase()))
             )
-          )
-          .map((applicant) => (
-            <div
-              key={applicant._id}
-              className="py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
-              onClick={() => {
-                setSelectedApplicant(applicant);
-                setIsApplicantModalOpen(true);
-              }}
-            >
-              <div>
-                <h4 className="font-medium text-gray-800">{applicant.username}</h4>
-                <p className="text-sm text-gray-600">{applicant.title}</p>
-                <div className="flex gap-4 mt-1 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Mail className="w-4 h-4" />
-                    {applicant.email}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    Applied {new Date(applicant.dateApplied).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm
-                ${applicant.status === 'Applied' ? 'bg-blue-100 text-blue-800' :
-                applicant.status === 'Reviewed' ? 'bg-yellow-100 text-yellow-800' :
-                applicant.status === 'Shortlisted' ? 'bg-green-100 text-green-800' :
-                'bg-red-100 text-red-800'}`}>
-                {applicant.status}
-              </span>
-            </div>
-          ))}
+            .map((applicant) => (
+              <div
+  key={applicant._id}
+  className="py-4 flex justify-between items-center hover:bg-gray-50 cursor-pointer transition-colors"
+  onClick={() => {
+    setSelectedApplicant(applicant);
+    setIsApplicantModalOpen(true);
+  }}
+>
+  {/* Applicant Info Section */}
+  <div className="flex-1">
+  <h4 className="font-semibold text-gray-800 text-left text-sm m-0 p-0 capitalize">
+  {applicant.username}
+</h4>
+    <p className="text-sm text-gray-600">{applicant.title}</p>
+    <div className="flex gap-4 mt-1 text-sm text-gray-500">
+      <span className="flex items-center gap-1 min-w-[120px]">
+        <Mail className="w-4 h-4 text-gray-400" />
+        {applicant.email}
+      </span>
+      <span className="flex items-center gap-1">
+        <Calendar className="w-4 h-4 text-gray-400" />
+        Applied {new Date(applicant.dateApplied).toLocaleDateString()}
+      </span>
+    </div>
+  </div>
+
+  {/* Status Badge */}
+  <span
+    className={`px-3 py-1 rounded-full text-xs font-medium
+    ${
+      applicant.status === "Applied"
+        ? "bg-blue-100 text-blue-800"
+        : applicant.status === "Reviewed"
+        ? "bg-yellow-100 text-yellow-800"
+        : applicant.status === "Shortlisted"
+        ? "bg-green-100 text-green-800"
+        : "bg-red-100 text-red-800"
+    }`}
+  >
+    {applicant.status}
+  </span>
+</div>
+
+            ))
+        ) : (
+          <p className="text-gray-500 text-center py-6">No applicants found.</p>
+        )}
       </div>
     </CardContent>
   </Card>
 </TabsContent>
+
+
 
         {/* Analytics Tab */}
         <TabsContent value="analytics">
@@ -610,42 +656,65 @@ const EmployerDashboard = () => {
   </Dialog>
 
         {/* Applicant Details Modal */}
-        <Dialog open={isApplicantModalOpen} onOpenChange={setIsApplicantModalOpen}>
-  <DialogContent className="max-w-lg p-4">
+  <Dialog open={isApplicantModalOpen} onOpenChange={setIsApplicantModalOpen}>
+  <DialogContent className="max-w-lg p-6 bg-white rounded-lg shadow-lg">
     <DialogHeader>
-      <DialogTitle>Applicant Details</DialogTitle>
+      <DialogTitle className="text-xl font-semibold text-gray-800">Applicant Details</DialogTitle>
     </DialogHeader>
-    <div className="max-h-96 overflow-y-auto space-y-4">
+    <div className="max-h-96 overflow-y-auto space-y-6 mt-4">
+      {/* Name */}
       <div>
-        <p className="font-semibold">Name:</p>
-        <p>{selectedApplicant?.username}</p>
+        <p className="font-semibold text-gray-700">Name:</p>
+        <p className="text-gray-600">{selectedApplicant?.username}</p>
       </div>
+
+      {/* Email */}
       <div>
-        <p className="font-semibold">Email:</p>
-        <p>{selectedApplicant?.email}</p>
+        <p className="font-semibold text-gray-700">Email:</p>
+        <p className="text-gray-600">{selectedApplicant?.email}</p>
       </div>
+
+      {/* Date Applied */}
       <div>
-        <p className="font-semibold">Date Applied:</p>
-        <p>{selectedApplicant?.dateApplied ? new Date(selectedApplicant.dateApplied).toLocaleDateString() : "N/A"}</p>
+        <p className="font-semibold text-gray-700">Date Applied:</p>
+        <p className="text-gray-600">
+          {selectedApplicant?.dateApplied
+            ? new Date(selectedApplicant.dateApplied).toLocaleDateString()
+            : "N/A"}
+        </p>
       </div>
+
+      {/* ATS Score */}
       <div>
-        <p className="font-semibold">ATS Score:</p>
-        <p>{selectedApplicant?.atsScore}</p>
+        <p className="font-semibold text-gray-700">ATS Score:</p>
+        <p className="text-gray-600">{selectedApplicant?.atsScore}</p>
       </div>
+
+      {/* Strengths */}
       <div>
-        <p className="font-semibold">Strengths:</p>
-        <p>{selectedApplicant?.strengths}</p>
+        <p className="font-semibold text-gray-700">Strengths:</p>
+        <p className="text-gray-600">{selectedApplicant?.strengths}</p>
       </div>
+
+      {/* Resume Summary */}
       <div>
-        <p className="font-semibold">Resume Summary:</p>
-        <p>{selectedApplicant?.resumeSummary}</p>
+        <p className="font-semibold text-gray-700">Resume Summary:</p>
+        <p className="text-gray-600">{selectedApplicant?.resumeSummary}</p>
       </div>
     </div>
-    <div className="flex justify-end gap-4 mt-4">
-      <button className="btn-primary" onClick={openScheduler}>Schedule Interview</button>
+
+    {/* Button Section */}
+    <div className="flex justify-end gap-4 mt-6">
+      <button
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        onClick={openScheduler}
+      >
+        Schedule Interview
+      </button>
     </div>
   </DialogContent>
 </Dialog>
+
         {/* Conditionally Render VideoMeetingScheduler */}
         {isInterviewModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
