@@ -1,15 +1,19 @@
 from flask import Flask, request, jsonify
 import fitz  # PyMuPDF
 import re
-import google.generativeai as genai
 import os
+import requests
+import json
 from dotenv import load_dotenv
-import re
+load_dotenv(override=True)
 
-load_dotenv()
+# OpenRouter API Configuration
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+MODEL = os.getenv("OPENROUTER_MODEL")
 
-# Configure Google Gemini API
-genai.configure(api_key=os.getenv("MyAPIKEY"))
+if not API_KEY or not MODEL:
+    raise EnvironmentError("OPENROUTER_API_KEY or OPENROUTER_MODEL is not set. Check your .env file.")
+
 
 app = Flask(__name__)
 
@@ -31,74 +35,26 @@ def get_phone_numbers(string):
     phone_numbers = r.findall(string)
     return [re.sub(r'\D', '', num) for num in phone_numbers if len(re.sub(r'\D', '', num)) in [8, 10]]
 
-
-def clean_text(text):
-    # Normalize text: Lowercasing and removing unnecessary symbols
-    text = text.lower()  # Convert to lowercase
-    text = re.sub(r'[*:\n]', ' ', text)  # Replace asterisks, colons, and newlines with spaces
-    text = re.sub(r'[^\w\s]', '', text)  # Remove all non-word characters except spaces
-    text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-    text = text.strip()  # Remove leading and trailing whitespace
-    return text
-
-import re
-
 def clean_text_for_prep(text):
     text = text.replace("\n", " ").replace("\r", " ")
     text = re.sub(r"[^a-zA-Z0-9\s.%]", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text.lower().strip()
 
-# nlp = spacy.load('en_core_web_sm')
-# matcher = Matcher(nlp.vocab)
-
-# def extract_name(text):
-#     nlp_text = nlp(text)
-#     pattern = [{'POS': 'PROPN'}, {'POS': 'PROPN'}]
-#     matcher.add('NAME', [pattern])
-#     matches = matcher(nlp_text)
-#     for match_id, start, end in matches:
-#         span = nlp_text[start:end]
-#         return span.text
-
-Keywords = ["education",
-            "summary",
-            "accomplishments",
-            "executive profile",
-            "professional profile",
-            "personal profile",
-            "work background",
-            "academic profile",
-            "other activities",
-            "qualifications",
-            "experience",
-            "interests",
-            "skills",
-            "achievements",
-            "publications",
-            "publication",
-            "certifications",
-            "workshops",
-            "projects",
-            "internships",
-            "trainings",
-            "hobbies",
-            "overview",
-            "objective",
-            "position of responsibility",
-            "jobs",
-            "relevant coursework",
-            "experience",
-            "projects",
-            "technical skills",
-           ]
+Keywords = [
+    "education", "summary", "accomplishments", "executive profile", "professional profile",
+    "personal profile", "work background", "academic profile", "other activities",
+    "qualifications", "experience", "interests", "skills", "achievements",
+    "publications", "certifications", "workshops", "projects", "internships",
+    "trainings", "hobbies", "overview", "objective", "position of responsibility",
+    "jobs", "relevant coursework", "technical skills"
+]
 
 def extract_keywords(text):
     content = {}
     indices = []
     keys = []
     
-    # Collect the start indices and the corresponding keys
     for key in Keywords:
         try:
             start_idx = text.index(key)
@@ -107,23 +63,36 @@ def extract_keywords(text):
         except ValueError:
             continue
     
-    # Sort the indices and keys together
     sorted_pairs = sorted(zip(indices, keys))
-    indices, keys = zip(*sorted_pairs)
+    indices, keys = zip(*sorted_pairs) if sorted_pairs else ([], [])
     
-    # Extract the sections between the sorted indices
     for i in range(len(keys)):
         start_idx = indices[i] + len(keys[i])
         end_idx = indices[i + 1] if i + 1 < len(keys) else len(text)
-        # Trim whitespace and avoid overlap
-        section_content = text[start_idx:end_idx].strip()
-        if keys[i] in content:
-            content[keys[i]] += " " + section_content
-        else:
-            content[keys[i]] = section_content
+        content[keys[i]] = text[start_idx:end_idx].strip()
     
     return content
 
+def query_openrouter(prompt):
+    if not API_KEY or not MODEL:
+        return "API key or model not set in environment variables." 
+    """Sends request to OpenRouter API using DeepSeek model"""
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = json.dumps({
+        "model": MODEL,
+        "messages": [{"role": "user", "content": prompt}]
+    })
+    
+    response = requests.post(url, headers=headers, data=data)
+    
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Error: {response.status_code} - {response.text}"
 
 @app.route('/parse_resume', methods=['POST'])
 def parse_resume():
@@ -131,53 +100,44 @@ def parse_resume():
         return jsonify({"error": "No resume file provided"}), 400
 
     file = request.files['resume']
-    print(file)
     job_desc = request.form.get('job_description')
 
     text = pdf_to_text(file)
     cleaned_text = clean_text_for_prep(text)
-    # Parse content
-    parsed_content = {}
-    parsed_content['E-mail'] = get_email_addresses(text)
-    parsed_content['phone number'] = get_phone_numbers(text)
-    # parsed_content['Name'] = extract_name(text)
-    
-    # Extract sections based on keywords
-    content = extract_keywords(cleaned_text)
-    
-    # Extract basic information
+
+    # Extract information
     parsed_content = {
         'E-mail': get_email_addresses(text),
         'phone number': get_phone_numbers(text)
     }
     
-    resume_imp_content = " ".join(content.values())
+    # Extract sections
+    content = extract_keywords(cleaned_text)
     parsed_content.update(content)
 
-    # Prepare prompt for Gemini API
-    prompt = f"These are the skills parsed from a resume: {resume_imp_content} and this is the job description: {job_desc}. Give response in the following pattern: ATS score: [estimated number out of 100]\n Strenghts:\nImprovements and skills required: "
-    chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash", generation_config={"max_output_tokens": 1000})
-    response = chat_session.start_chat().send_message(prompt)
+    resume_imp_content = " ".join(content.values())
+    
+    # Prepare prompt
+    prompt = f"Candidate’s Skills: {resume_imp_content}. Job Description: {job_desc}. Critically analyze the alignment between the candidate's skills and the job description, evaluating minute details thoroughly based on deeper domain relevance and critical assessment, while ensuring a fair and unbiased ranking. Provide the response in this format without markdown language: ATS Score: [estimated number out of 100]\nStrengths:\n- [List key strengths]\nImprovements and Required Skills:\n- [List missing or weak skills]"
 
-    cleaned_response = clean_text(response.text)
+    response_text = query_openrouter(prompt)
 
-    # Adjusted regex patterns
-    ats_score_match = re.search(r'\bats\s*score\s*[:\-]?\s*(\d{2,3})\b', cleaned_response)
-    strengths_match = re.search(r'strengths\s*([\s\S]*?)improvements and skills required', cleaned_response)
+    # Extract ATS score, strengths, and improvements
+    ats_score_match = re.search(r'[#]*\s*ats\s*score\s*[:\-]?\s*(\d{1,3})', response_text, re.IGNORECASE)
+
+    strengths_match = re.search(r'Strengths\s*([\s\S]*?)Improvements and Required Skills', response_text, re.IGNORECASE)
 
     ats_score = ats_score_match.group(1) if ats_score_match else None
     strengths = strengths_match.group(1).strip() if strengths_match else None
 
-
-    # Response to the frontend
     return jsonify({
         "parsed_content": parsed_content,
-        "gemini_response": {
+        "deepseek_response": {
             "ats_score": ats_score,
             "strengths": strengths,
-            "full_response": cleaned_response
+            "full_response": response_text
         }
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+        app.run(debug=True)
