@@ -1,7 +1,7 @@
 import Navbar from '../element/navbar'
 import React, { useState ,useRef,useEffect} from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Calendar, Briefcase, BookOpen, Building2, Upload, MapPin, Users, DollarSign,Check,FileText,X,ClipboardList} from 'lucide-react';
+import { Calendar, Briefcase, BookOpen, Building2, Upload, MapPin, Check,FileText,X,ClipboardList} from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import axios from 'axios';
 import {
@@ -10,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { title } from 'process';
 
 interface CareerTrack {
   title: string;
@@ -547,7 +546,7 @@ const handleCloseModal = () => {
               <Building2 className="w-6 h-6 text-blue-600 mr-3" />
               <div>
                 <h3 className="font-semibold text-gray-800 font-mono">{company.organization.name}</h3>
-                <p className="text-sm text-gray-600 font-light">{company.industry}</p>
+                <p className="text-sm text-gray-600 font-light">{company.title}</p>
               </div>
             </div>
           </div>

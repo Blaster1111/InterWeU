@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Navbar from '../element/navbar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import VideoMeetingScheduler from '../element/VideoMeetingScheduler'
 import { 
-  Building2, Users, Calendar, Clock, 
-  Plus, Edit, Trash2, Search, Filter,
-  Mail, Phone, Download, ThumbsUp, ThumbsDown
-} from 'lucide-react';
+  Building2, Calendar, 
+  Plus, Edit, Trash2, Search, 
+  Mail} from 'lucide-react';
 import { 
   Dialog,
   DialogContent,
@@ -15,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from 'axios';
 interface JobPosting {
@@ -54,7 +52,7 @@ interface ErrorState {
 
 
 const EmployerDashboard = () => {
-  const [username, setUsername] = useState("Google");
+  const [username] = useState("Google");
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('postings');
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
@@ -65,10 +63,10 @@ const EmployerDashboard = () => {
   const [jobPostings, setJobPostings] = useState<JobPosting[]>([]);
 
   const [applicants, setApplicants] = useState<Applicant[]>([]);
-  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
+  const [, setSelectedJob] = useState<JobPosting | null>(null);
 
-  const [isLoading, setIsLoading] = useState({ applicants: false, jobPostings: false });
-  const [error, setError] = useState<ErrorState>({
+  const [, setIsLoading] = useState({ applicants: false, jobPostings: false });
+  const [, setError] = useState<ErrorState>({
     applicants: null,
     jobPostings: null,
   });
@@ -160,19 +158,9 @@ const EmployerDashboard = () => {
     setIsInterviewModalOpen(true);  // Then open the scheduler
   };
   
-  const closeScheduler = () => {
-    setIsInterviewModalOpen(false);
-    setIsApplicantModalOpen(true); // Reopen the applicant modal if needed
-  };
 
-  const openModal = () => {
-    setIsInterviewModalOpen(true);
-  };
   
   // Function to close the modal
-  const closeModal = () => {
-    setIsInterviewModalOpen(false);
-  };
   // Sample data
  
 
@@ -251,34 +239,7 @@ const EmployerDashboard = () => {
 
 
 
-  const handleNewJobSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // Replace with actual form data and API endpoint
-      const response = await axios.post('/api/job-postings', {
-        // Form data would go here
-      });
-      
-      // Add the new job posting to the list
-      setJobPostings([...jobPostings, response.data]);
-      setIsNewJobModalOpen(false);
-    } catch (err) {
-      console.error('Error creating job posting:', err);
-      // Optionally set an error state to show to the user
-    }
-  };
 
-  const handleApplicantStatusChange = async (applicantId: string, newStatus: Applicant['status']) => {
-    try {
-      // Replace with actual API endpoint for updating applicant status
-      await axios.patch(`/api/applicants/${applicantId}`, { status: newStatus });
-      
-      // Optionally update local state or refetch applicants
-      console.log(`Updated applicant ${applicantId} status to ${newStatus}`);
-    } catch (err) {
-      console.error('Error updating applicant status:', err);
-    }
-  };
   
   
 
