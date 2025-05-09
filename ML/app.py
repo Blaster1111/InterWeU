@@ -82,7 +82,8 @@ def query_openrouter(prompt):
     
     payload = {
         "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}]
+        "messages": [{"role": "user", "content": prompt},
+                     {"role": "system", "content": "Your task is to analyze the candidate's resume and job description, providing a detailed critiacally analysed ATS score and feedback."}],
     }
     
     try:
