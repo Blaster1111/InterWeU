@@ -13,7 +13,7 @@ const parseResume = async (file, jobDesc) => {
     formData.append('resume', fs.createReadStream(file.path), { filename: file.originalname });
     formData.append('job_description', jobDesc);
 
-    const response = await axios.post("https://interweu-ml.onrender.com/parse_resume", formData, {
+    const response = await axios.post("http://127.0.0.1:5000/parse_resume", formData, {
       headers: {
         ...formData.getHeaders(),
       },

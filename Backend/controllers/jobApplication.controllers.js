@@ -30,9 +30,9 @@ const createJobApplication = asyncHandler(async (req, res) => {
     coverLetter,
     applicantId: authenticatedUser._id,
     resume: "hi",
-    atsScore: parsedData.data.deepseek_response.ats_score,
-    resumeSummary: parsedData.data.deepseek_response.full_response,
-    strengths: parsedData.data.deepseek_response.strengths,
+    atsScore: parsedData.data.deepseek_response?.ats_score,
+    resumeSummary: parsedData.data.deepseek_response?.full_response,
+    strengths: parsedData.data.deepseek_response?.strengths,
     parsedResume: {
       skills: parsedData.data.parsed_content.skills,
       education: parsedData.data.parsed_content.education,
